@@ -2,6 +2,7 @@ package com.gabrielittner.auto.value.cursor;
 
 import com.gabrielittner.auto.value.ColumnProperty;
 import com.gabrielittner.auto.value.util.ElementUtil;
+import com.gabrielittner.auto.value.util.Property;
 import com.google.auto.service.AutoService;
 import com.google.auto.value.extension.AutoValueExtension;
 import com.google.common.collect.ImmutableList;
@@ -58,7 +59,6 @@ public class AutoValueCursorExtension extends AutoValueExtension {
                 || getMatchingStaticMethod(valueClass, getFunc1TypeName(context)).isPresent()
                 || getMatchingStaticMethod(valueClass, getFunctionTypeName(context)).isPresent()
                 || getMatchingStaticMethod(valueClass, ParameterizedTypeName.get(LIST, ClassName.get(valueClass)), CURSOR).isPresent();
-        ;
     }
 
   @Override
@@ -86,7 +86,7 @@ public class AutoValueCursorExtension extends AutoValueExtension {
 
   private MethodSpec createReadMethod(Context context, ImmutableList<ColumnProperty> properties) {
     MethodSpec.Builder readMethod =
-            MethodSpec.methodBuilder(SINGULAR_CREATE_METHOD_NAME)
+            MethodSpec.methodBuilder(METHOD_NAME)
                     .addModifiers(STATIC)
                     .returns(getFinalClassClassName(context))
                     .addParameter(CURSOR, "cursor");
@@ -126,12 +126,7 @@ public class AutoValueCursorExtension extends AutoValueExtension {
                 .build();
     }
 
-    private CodeBlock readProperty(ColumnProperty property) {
-        CodeBlock getValue = CodeBlock.of(checkNotNull(property.cursorMethod()), getColumnIndexOrThrow(property));
-        return CodeBlock.builder()
-                .addStatement("$T $N = $L", property.type(), property.humanName(), getValue)
-                .build();
-    }
+
   private MethodSpec createReadListMethod(Context context) {
     TypeElement valueClass = context.autoValueClass();
     MethodSpec.Builder readMethod =
@@ -152,13 +147,12 @@ public class AutoValueCursorExtension extends AutoValueExtension {
     readMethod.addStatement("return list");
     return readMethod.build();
   }
-
-  private CodeBlock readProperty(ColumnProperty property) {
-    CodeBlock getValue = CodeBlock.of(property.cursorMethod(), getColumnIndex(property));
-    return CodeBlock.builder()
-            .addStatement("$T $N = $L", property.type(), property.humanName(), getValue)
-            .build();
-  }
+    private CodeBlock readProperty(ColumnProperty property) {
+        CodeBlock getValue = CodeBlock.of(checkNotNull(property.cursorMethod()), getColumnIndexOrThrow(property));
+        return CodeBlock.builder()
+                .addStatement("$T $N = $L", property.type(), property.humanName(), getValue)
+                .build();
+    }
 
     private CodeBlock readNullableProperty(ColumnProperty property) {
         String columnIndexVar = property.humanName() + "ColumnIndex";
@@ -245,19 +239,6 @@ public class AutoValueCursorExtension extends AutoValueExtension {
         }
         return ImmutableMap.copyOf(columnAdapters);
     }
-  public static ImmutableMap<Property, FieldSpec> getColumnAdapters(
-          List<ColumnProperty> properties) {
-    Map<Property, FieldSpec> columnAdapters = new HashMap<>();
-    for (ColumnProperty property : properties) {
-      if (property.columnAdapter() != null && !columnAdapters.containsKey(property)) {
-        ClassName clsName = (ClassName) TypeName.get(property.columnAdapter());
-        String name = NameAllocator.toJavaIdentifier(toLowerCase(clsName.simpleName()));
-        FieldSpec field = FieldSpec.builder(clsName, name).build();
-        columnAdapters.put(property, field);
-      }
-    }
-    return ImmutableMap.copyOf(columnAdapters);
-  }
 
     private static String toLowerCase(String s) {
         return Character.toLowerCase(s.charAt(0)) + s.substring(1);
