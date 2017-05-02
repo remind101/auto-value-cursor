@@ -1,7 +1,6 @@
 package com.gabrielittner.auto.value.contentvalues;
 
 import com.gabrielittner.auto.value.ColumnProperty;
-import com.gabrielittner.auto.value.util.Property;
 import com.google.auto.service.AutoService;
 import com.google.auto.value.extension.AutoValueExtension;
 import com.google.common.base.Optional;
@@ -15,10 +14,8 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.Collections;
 import java.util.Set;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 
 import static com.gabrielittner.auto.value.cursor.AutoValueCursorExtension.addColumnAdaptersToMethod;
-import static com.gabrielittner.auto.value.cursor.AutoValueCursorExtension.getColumnAdapters;
 import static com.gabrielittner.auto.value.util.AutoValueUtil.error;
 import static com.gabrielittner.auto.value.util.AutoValueUtil.newTypeSpecBuilder;
 import static com.gabrielittner.auto.value.util.ElementUtil.getMatchingAbstractMethod;
@@ -48,14 +45,14 @@ public class AutoValueContentValuesExtension extends AutoValueExtension {
     @Override
     public String generateClass(
             Context context, String className, String classToExtend,boolean isFinal) {
-        Optional<ExecutableElement> method =
-                getMatchingAbstractMethod(context.abstractMethods(), CONTENT_VALUES);
-        if (!method.isPresent()) throw new AssertionError("Method is null");
+        Optional<ExecutableElement> methodReturningContentValues = getMatchingAbstractMethod(context.abstractMethods(), CONTENT_VALUES);
+        if (!methodReturningContentValues.isPresent()) {
+            throw new AssertionError("Method is null");
+        }
         ImmutableList<ColumnProperty> properties = ColumnProperty.from(context);
 
-        TypeSpec.Builder subclass =
-                newTypeSpecBuilder(context, className, classToExtend, isFinal)
-                        .addMethod(createToContentValuesMethod(context, method.get(), properties));
+        TypeSpec.Builder subclass = newTypeSpecBuilder(context, className, classToExtend, isFinal)
+                        .addMethod(createToContentValuesMethod(context, methodReturningContentValues.get(), properties));
 
         return JavaFile.builder(context.packageName(), subclass.build()).build().toString();
     }
@@ -71,18 +68,15 @@ public class AutoValueContentValuesExtension extends AutoValueExtension {
                         .addAnnotation(Override.class)
                         .addModifiers(PUBLIC)
                         .returns(CONTENT_VALUES)
-                        .addStatement(
-                                "$1T values = new $1T($2L)", CONTENT_VALUES, properties.size());
+                        .addStatement("$1T values = new $1T($2L)", CONTENT_VALUES, properties.size());
 
-        ImmutableMap<Property, FieldSpec> columnAdapters = getColumnAdapters(properties);
-        addColumnAdaptersToMethod(writeMethod, properties, columnAdapters);
+        ImmutableMap<ClassName, String> columnAdapters = addColumnAdaptersToMethod(writeMethod, properties);
 
         for (ColumnProperty property : properties) {
-            TypeMirror factory = property.columnAdapter();
-            if (factory != null) {
+            if (property.columnAdapter() != null) {
                 writeMethod.addStatement(
-                        "$N.toContentValues(values, $S, $L())",
-                        columnAdapters.get(property),
+                        "$L.toContentValues(values, $S, $L())",
+                        columnAdapters.get(property.columnAdapter()),
                         property.columnName(),
                         property.methodName());
             } else if (property.supportedType()) {
