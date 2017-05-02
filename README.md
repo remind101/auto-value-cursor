@@ -25,6 +25,11 @@ import com.gabrielittner.auto.value.cursor.ColumnName;
     return AutoValue_User.MAPPER;
   }
 
+  // Optional: if your project includes RxJava 2 the extension will generate a Function<Cursor, User>
+  public static Function<Cursor, User> mapper() {
+    return AutoValue_User.MAPPER_FUNCTION;
+  }
+
   // Optional: When you include an abstract method that returns ContentValues and doesn't have
   // any parameters the extension will implement it for you
   abstract ContentValues toContentValues();
@@ -34,6 +39,8 @@ import com.gabrielittner.auto.value.cursor.ColumnName;
 **Important:** The extension will only be applied when there is
 - a static method that returns your value type (`User` in the example) and takes a `Cursor` as parameter
 - and/or a static method that returns a `Func1<Cursor, YourValueType>` and has no parameters
+
+## Custom types 
 
 The following types are supported by default:
 
@@ -101,28 +108,9 @@ public class Avatar {
 Add a Gradle dependency:
 
 ```groovy
-apt 'com.gabrielittner.auto.value:auto-value-cursor:1.0.0'
+annotationProcessor 'com.gabrielittner.auto.value:auto-value-cursor:1.1.0'
 // if you need the @ColumnName or @ColumnAdapter annotations also include this:
-compile 'com.gabrielittner.auto.value:auto-value-cursor-annotations:1.0.0'
-```
-(Using the [android-apt][apt] plugin)
-
-
-or Maven:
-```xml
-<dependency>
-  <groupId>com.gabrielittner.auto.value</groupId>
-  <artifactId>auto-value-cursor</artifactId>
-  <version>1.0.0</version>
-  <scope>provided</scope>
-</dependency>
-<!-- if you need the @ColumnName or @ColumnAdapter annotations also include this: -->
-<dependency>
-  <groupId>com.gabrielittner.auto.value</groupId>
-  <artifactId>auto-value-cursor-annotations</artifactId>
-  <version>1.0.0</version>
-  <scope>compile</scope>
-</dependency>
+compile 'com.gabrielittner.auto.value:auto-value-cursor-annotations:1.1.0'
 ```
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
@@ -152,7 +140,6 @@ limitations under the License.
 
  [auto]: https://github.com/google/auto
  [snap]: https://oss.sonatype.org/content/repositories/snapshots/
- [apt]: https://bitbucket.org/hvisser/android-apt
  [ryan]: https://github.com/rharter/
  [auto-gson]: https://github.com/rharter/auto-value-gson
 
