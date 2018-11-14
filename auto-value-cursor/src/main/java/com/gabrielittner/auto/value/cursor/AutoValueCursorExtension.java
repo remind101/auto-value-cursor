@@ -133,7 +133,7 @@ public class AutoValueCursorExtension extends AutoValueExtension {
             MethodSpec.methodBuilder(COLLECTION_CREATE_METHOD_NAME)
                     .addModifiers(STATIC)
                     .returns(ParameterizedTypeName.get(LIST, ClassName.get(valueClass)))
-                    .addAnnotation(ClassName.get("android.support.annotation", "NonNull"))
+                    .addAnnotation(ClassName.get("androidx.annotation", "NonNull"))
                     .addParameter(CURSOR, "cursor");
     readMethod.addStatement("$T list = new $T<>()", ParameterizedTypeName.get(LIST, ClassName.get(valueClass)), ARRAY_LIST);
     readMethod.addStatement("cursor.moveToFirst()");
