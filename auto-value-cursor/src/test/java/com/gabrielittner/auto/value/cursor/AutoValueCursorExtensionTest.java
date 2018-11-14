@@ -22,8 +22,8 @@ public class AutoValueCursorExtensionTest {
 
   @Before
   public void setup() {
-    nonNull = JavaFileObjects.forSourceString("android.support.annotation.NonNull", ""
-            + "package android.support.annotation;\n"
+    nonNull = JavaFileObjects.forSourceString("androidx.annotation.NonNull", ""
+            + "package androidx.annotation;\n"
             + "import java.lang.annotation.Retention;\n"
             + "import java.lang.annotation.Target;\n"
             + "\n"
@@ -695,7 +695,7 @@ public class AutoValueCursorExtensionTest {
             + "package test;\n"
             + "\n"
             + "import android.database.Cursor;\n"
-            + "import android.support.annotation.NonNull;\n"
+            + "import androidx.annotation.NonNull;\n"
             + "import java.lang.String;\n"
             + "import java.util.ArrayList;\n"
             + "import java.util.List;\n"
